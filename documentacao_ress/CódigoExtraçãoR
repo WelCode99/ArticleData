@@ -1,78 +1,142 @@
-# Instalação (se necessário) e carregamento dos pacotes
+##############################################################################
+# 1) Instala e/ou carrega os pacotes
+##############################################################################
 if (!requireNamespace("remotes", quietly = TRUE)) install.packages("remotes")
-if (!requireNamespace("microdatasus", quietly = TRUE)) remotes::install_github("rfsaldanha/microdatasus", force = TRUE)
+if (!requireNamespace("microdatasus", quietly = TRUE)) {
+  remotes::install_github("rfsaldanha/microdatasus")
+}
 if (!requireNamespace("data.table", quietly = TRUE)) install.packages("data.table")
 if (!requireNamespace("dplyr", quietly = TRUE)) install.packages("dplyr")
 
 library(microdatasus)
-library(data.table)
 library(dplyr)
+library(data.table)  # para fwrite()
 
-# Função para baixar, processar, filtrar e salvar dados de artrite séptica
-baixar_filtrar_artrite_septica <- function(ano, arquivo_saida, uf = "RS") {
-  cat(sprintf("\n=== Ano %d ===\n", ano))
+##############################################################################
+# 2) Vetor de siglas de UFs e Anos
+##############################################################################
+
+ufs <- c("AC","AL","AM","AP","BA","CE","DF","ES","GO","MA",
+         "MG","MS","MT","PA","PB","PE","PI","PR","RJ","RN",
+         "RO","RR","RS","SC","SE","SP","TO")
+
+# Se quiser *todas*, inclua "TO" e as que faltarem.  
+# Caso deseje filtrar alguma UF, basta remover do vetor.
+
+anos <- 2010:2024  # ajuste conforme sua necessidade
+
+##############################################################################
+# 3) Definir arquivo CSV de saída
+##############################################################################
+arquivo_saida <- "SIH_ArtriteSeptica_BrasilUFporUFCIDADICIONAL.csv"
+
+# Se já existir, remove para começar do zero
+if (file.exists(arquivo_saida)) {
+  file.remove(arquivo_saida)
+}
+
+##############################################################################
+# 4) Lista de códigos CID de artrite séptica (sem ponto)
+##############################################################################
+cids_artrite_septica <- c(
+  "M000","M001","M002","M008","M009",   # M00.0 a M00.9
+  "M010","M011","M012","M013","M014",
+  "M015","M016","M018","M019",         # M01.0 a M01.9
+  "M030",                               # M03.0
+  "A544"
+)
+
+##############################################################################
+# 5) Função para baixar e processar
+##############################################################################
+baixar_processar_sih <- function(ano, uf_i) {
+  # Mensagem de status
+  cat(sprintf("\n--- Processando ano %d, UF=%s ---\n", ano, uf_i))
   
-  # 1) Download dos dados brutos do SIH-RD
-  dados_brutos <- fetch_datasus(
-    year_start         = ano,
-    year_end           = ano,
-    uf                 = uf,
-    month_start        = 1,
-    month_end          = 12,
-    information_system = "SIH-RD"
+  # Baixa dados do DATASUS (SIH-RD)
+  dados_brutos <- tryCatch(
+    fetch_datasus(
+      year_start         = ano,
+      year_end           = ano,
+      month_start        = 1,
+      month_end          = 12,
+      uf                 = uf_i,
+      information_system = "SIH-RD"
+    ),
+    error = function(e) {
+      cat("Erro no fetch_datasus: ", e$message, "\n")
+      return(NULL)
+    }
   )
   
-  # 2) Verificação de existência de dados
-  if (nrow(dados_brutos) == 0) {
-    warning(sprintf("Nenhum dado encontrado para %d.", ano))
+  # Se falhou ou veio vazio, retorna
+  if (is.null(dados_brutos) || nrow(dados_brutos) == 0) {
+    cat("Nenhum dado encontrado.\n")
     return(NULL)
   }
   
-  # 3) Processamento dos dados
-  dados_proc <- process_sih(
+  # Processa (conversão de tipos, padronização)
+  dados_processados <- process_sih(
     data               = dados_brutos,
     information_system = "SIH-RD"
   )
   
-  # 4) Filtragem por idade e diagnóstico principal
-  #    - idade pode ser adaptada; aqui mantemos todos
-  dados_filtrados <- dados_proc %>%
+  # Criar coluna DIAG_PRINC sem ponto
+  # Ex.: "M00.0" => "M000"
+  dados_processados <- dados_processados %>%
+    mutate(DIAG_PRINC_PAD = toupper(gsub("\\.", "", DIAG_PRINC)))
+  
+  # Filtra:
+  # - idade >= 18 anos
+  # - DIAG_PRINC_PAD dentro da lista de artrite séptica
+  dados_filtrados <- dados_processados %>%
     filter(
-      grepl("^M00", DIAG_PRINC)   # todos os códigos M00.x de artrite séptica
+      IDADE >= 18,
+      DIAG_PRINC_PAD %in% cids_artrite_septica
     )
   
   if (nrow(dados_filtrados) == 0) {
-    warning(sprintf("Nenhum registro de artrite séptica para %d.", ano))
+    cat("Nenhum registro após filtro.\n")
     return(NULL)
   }
   
-  # 5) Definir se escreve cabeçalho (somente no primeiro arquivo)
-  escrever_cabecalho <- !file.exists(arquivo_saida)
-  
-  # 6) Escrita em CSV (append = TRUE mantém dados anteriores)
-  fwrite(
-    dados_filtrados,
-    file       = arquivo_saida,
-    append     = TRUE,
-    col.names  = escrever_cabecalho
-  )
-  
-  cat(sprintf("Ano %d processado: %d registros salvos.\n", ano, nrow(dados_filtrados)))
+  # Retorna o data.frame filtrado
+  return(dados_filtrados)
 }
 
-# Definições gerais
-arquivo_saida <- "SIH_ArtriteSeptica_RS_2014_2023.csv"
-anos <- 2014:2023
+##############################################################################
+# 6) Loop principal (UF x ano), salvando incrementalmente no CSV
+##############################################################################
 
-# Remover arquivo pré-existente, se houver
-if (file.exists(arquivo_saida)) file.remove(arquivo_saida)
-
-# Loop principal
-for (yr in anos) {
-  tryCatch(
-    baixar_filtrar_artrite_septica(ano = yr, arquivo_saida = arquivo_saida),
-    error = function(e) cat(sprintf("Erro em %d: %s\n", yr, e$message))
-  )
+for (uf_i in ufs) {
+  for (ano in anos) {
+    # Baixa + processa + filtra
+    df_filtrado <- baixar_processar_sih(ano, uf_i)
+    
+    # Se veio NULL ou 0 linhas, pula
+    if (is.null(df_filtrado) || nrow(df_filtrado) == 0) {
+      next
+    }
+    
+    # Verifica se precisa escrever cabeçalho
+    escrever_cabecalho <- !file.exists(arquivo_saida)
+    
+    # Salva no CSV
+    fwrite(
+      df_filtrado,
+      file      = arquivo_saida,
+      append    = TRUE,
+      col.names = escrever_cabecalho
+    )
+    
+    cat(sprintf("UF=%s, ano=%d => %d linhas filtradas e salvas.\n",
+                uf_i, ano, nrow(df_filtrado)))
+    
+    # Libera memória
+    rm(df_filtrado)
+    gc()
+  }
 }
 
-cat("\n=== Processamento concluído ===\n")
+cat("\n\n=== Fim do processo! ===\n")
+cat(sprintf("Dados salvos em: %s\n", arquivo_saida))
