@@ -1,0 +1,78 @@
+# Instalação (se necessário) e carregamento dos pacotes
+if (!requireNamespace("remotes", quietly = TRUE)) install.packages("remotes")
+if (!requireNamespace("microdatasus", quietly = TRUE)) remotes::install_github("rfsaldanha/microdatasus", force = TRUE)
+if (!requireNamespace("data.table", quietly = TRUE)) install.packages("data.table")
+if (!requireNamespace("dplyr", quietly = TRUE)) install.packages("dplyr")
+
+library(microdatasus)
+library(data.table)
+library(dplyr)
+
+# Função para baixar, processar, filtrar e salvar dados de artrite séptica
+baixar_filtrar_artrite_septica <- function(ano, arquivo_saida, uf = "RS") {
+  cat(sprintf("\n=== Ano %d ===\n", ano))
+  
+  # 1) Download dos dados brutos do SIH-RD
+  dados_brutos <- fetch_datasus(
+    year_start         = ano,
+    year_end           = ano,
+    uf                 = uf,
+    month_start        = 1,
+    month_end          = 12,
+    information_system = "SIH-RD"
+  )
+  
+  # 2) Verificação de existência de dados
+  if (nrow(dados_brutos) == 0) {
+    warning(sprintf("Nenhum dado encontrado para %d.", ano))
+    return(NULL)
+  }
+  
+  # 3) Processamento dos dados
+  dados_proc <- process_sih(
+    data               = dados_brutos,
+    information_system = "SIH-RD"
+  )
+  
+  # 4) Filtragem por idade e diagnóstico principal
+  #    - idade pode ser adaptada; aqui mantemos todos
+  dados_filtrados <- dados_proc %>%
+    filter(
+      grepl("^M00", DIAG_PRINC)   # todos os códigos M00.x de artrite séptica
+    )
+  
+  if (nrow(dados_filtrados) == 0) {
+    warning(sprintf("Nenhum registro de artrite séptica para %d.", ano))
+    return(NULL)
+  }
+  
+  # 5) Definir se escreve cabeçalho (somente no primeiro arquivo)
+  escrever_cabecalho <- !file.exists(arquivo_saida)
+  
+  # 6) Escrita em CSV (append = TRUE mantém dados anteriores)
+  fwrite(
+    dados_filtrados,
+    file       = arquivo_saida,
+    append     = TRUE,
+    col.names  = escrever_cabecalho
+  )
+  
+  cat(sprintf("Ano %d processado: %d registros salvos.\n", ano, nrow(dados_filtrados)))
+}
+
+# Definições gerais
+arquivo_saida <- "SIH_ArtriteSeptica_RS_2014_2023.csv"
+anos <- 2014:2023
+
+# Remover arquivo pré-existente, se houver
+if (file.exists(arquivo_saida)) file.remove(arquivo_saida)
+
+# Loop principal
+for (yr in anos) {
+  tryCatch(
+    baixar_filtrar_artrite_septica(ano = yr, arquivo_saida = arquivo_saida),
+    error = function(e) cat(sprintf("Erro em %d: %s\n", yr, e$message))
+  )
+}
+
+cat("\n=== Processamento concluído ===\n")
