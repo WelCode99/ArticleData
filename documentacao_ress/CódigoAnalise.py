@@ -9,15 +9,13 @@ apresentados no manuscrito "Fatores associados à readmissão hospitalar e
 mortalidade por artrite séptica no Sistema Único de Saúde, Brasil, 2014-2023",
 submetido à Revista Epidemiologia e Serviços de Saúde (RESS).
 
-As análises foram originalmente exploradas com auxílio da ferramenta JuliusAI
-e consolidadas neste script para fins de reprodutibilidade e conformidade
-com as políticas de ciência aberta.
+
 
 -----------------------------------------------------------------------------
- Autor(es):   Pereira JR, Silva LA, Gomes MM, Clavijo B [AJUSTAR CONFORME ARTIGO]
+ Autor(es):   Pereira JR, Silva LA, Gomes MM, Clavijo B...
  Data:        21/04/2025
  Versão:      1.0
- Contato:     [Seu E-mail]
+ Contato:     
 -----------------------------------------------------------------------------
 
  Requisitos:
