@@ -5,7 +5,7 @@ Este repositório contém o código Python utilizado para as análises apresenta
 
 **Título do Artigo:** "Fatores associados à readmissão hospitalar e mortalidade por artrite séptica no Sistema Único de Saúde, Brasil, 2014-2023"
 **Periódico (Submetido/Publicado):** Revista Epidemiologia e Serviços de Saúde (RESS)
-**DOI da Publicação (se disponível):** [Inserir DOI do artigo quando publicado]
+**DOI da Publicação (se disponível):** [pendente]
 
 ## INFORMAÇÕES GERAIS
 
@@ -15,13 +15,14 @@ Este repositório contém o código Python utilizado para as análises apresenta
         * ORCID: https://orcid.org/0000-0003-2694-2445
         * Instituição: Hospital Municipal Padre Germano Lauck - Foz do Iguaçu, Paraná, Brasil
         * Email: drajessicarodriguesp@gmail.com
-    * **Co-autor/Contato:**
+    * **Co-autores/Contato:**
         * Nome: Bruno Clavijo
         * ORCID: https://orcid.org/0009-0002-3239-1862
         * Instituição: Hospital Municipal Padre Germano Lauck - Foz do Iguaçu, Paraná, Brasil
         * Email: brunoclavijo@hotmail.com
-    * **(Listar demais autores e informações)**
+
         * Nome: Lígia de Araújo Silva; ORCID: https://orcid.org/0009-0007-9714-4420; Email: draligiaaraujosilva@gmail.com
+          
         * Nome: Moysés Mendes Gomes; ORCID: https://orcid.org/0009-0009-4616-088X; Email: moysesmendesgomes@gmail.com
 * **Data da Coleta/Período dos Dados:** Janeiro de 2014 a Dezembro de 2023
 * **Localização Geográfica dos Dados:** Brasil (Sistema Único de Saúde - SUS)
@@ -30,10 +31,11 @@ Este repositório contém o código Python utilizado para as análises apresenta
 ## COMPARTILHAMENTO E ACESSO
 
 * **Licença do Código:** MIT License (Ver arquivo `LICENSE`)
-* **Link para Publicação Associada:** [Inserir Link para o artigo na RESS quando disponível]
+* **Link para Publicação Associada:** [pendente]
 * **Localização dos Dados Originais:** Os dados brutos são derivados do Sistema de Informações Hospitalares do Sistema Único de Saúde (SIH/SUS) e podem ser acessados publicamente através do Departamento de Informática do SUS (DATASUS): <http://www2.datasus.gov.br/DATASUS/index.php?area=0202>. O download e pré-processamento inicial podem ser facilitados pelo pacote `microdatasus` [19].
-* **Citação Recomendada para este Código/Repositório:**
-    Pereira JR, Silva LA, Gomes MM, Clavijo B. (2025). Código de Análise para: Fatores associados à readmissão hospitalar e mortalidade por artrite séptica no Sistema Único de Saúde, Brasil, 2014-2023. [Software]. GitHub Repository. [Inserir URL do Repositório GitHub Aqui].
+* **Citação  para este Código/Repositório:**
+    Pereira JR, Silva LA, Gomes MM, Clavijo B. (2025). Código de Análise para: Fatores associados à readmissão hospitalar e mortalidade por artrite séptica no Sistema Único de Saúde, Brasil, 2014-2023. GitHub Repository. [https://github.com/WelCode99/ArticleData]
+].
 
 ## VISÃO GERAL DOS DADOS E ARQUIVOS
 
@@ -41,8 +43,8 @@ Este repositório contém o código Python utilizado para as análises apresenta
     * `README.md`: Este arquivo de descrição.
     * `analise_artrite_septica_ress.py`: Script Python principal contendo todo o fluxo de análise.
     * `LICENSE`: Arquivo de licença MIT.
-    * `requirements.txt`: Lista das bibliotecas Python necessárias e suas versões (aproximadas).
-    * `ResultadosAnalise_ArtigoRESS/` (Pasta gerada pelo script): Contém as figuras (.png, .tiff) e tabelas auxiliares (.csv) resultantes da execução do script.
+    * `requirements.txt`: Lista das bibliotecas Python necessárias e suas versões utilizadas nesta analise específica.
+    * `ResultadosAnalise_ArtigoRESS/`: Contém as figuras (.png, .tiff) e tabelas auxiliares (.csv) resultantes da execução do script.
     * **(Opcional)** `SIH_ArtriteSeptica_BrasilUFporUF_filtered61225.csv`: Arquivo de dados de entrada utilizado (NÃO incluído neste repositório devido ao tamanho e por ser derivado de fonte pública. Instruções para obtenção abaixo).
 * **Relação entre Arquivos:** O script `analise_artrite_septica_ress.py` lê o arquivo `.csv` (que deve ser obtido separadamente) e gera os conteúdos da pasta `ResultadosAnalise_ArtigoRESS/`.
 
