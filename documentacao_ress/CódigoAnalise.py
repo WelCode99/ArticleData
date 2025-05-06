@@ -19,7 +19,7 @@ submetido à Revista Epidemiologia e Serviços de Saúde (RESS).
 -----------------------------------------------------------------------------
 
  Requisitos:
-  - Python 3.x (e.g., 3.9+)
+  - Python 
   - Bibliotecas: pandas, numpy, matplotlib, seaborn, statsmodels, scikit-learn
     (Instalar via: pip install pandas numpy matplotlib seaborn statsmodels scikit-learn)
   - Arquivo de dados: 'SIH_ArtriteSeptica_BrasilUFporUF_filtered61225.csv'
